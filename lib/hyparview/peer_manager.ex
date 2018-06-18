@@ -175,7 +175,7 @@ defmodule Hyparview.PeerManager do
     :keep_state_and_data
   end
 
-  defp handle_INIT(:info, %Neighbor{sender: sender} = neighbor, _data) do
+  defp handle_INIT(:info, %Neighbor{}, _data) do
     # Ignored
     :keep_state_and_data
   end

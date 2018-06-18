@@ -22,14 +22,14 @@ defmodule Hyparview.Debug do
   def slave_start_link_n(min, max),
     do: slave_start_n_iml(min, max, :start_link)
 
-  def to_graph do
-    graph =
-      all_node()
-      |> Enum.sort()
-      |> Enum.map(&to_edge/1)
-      |> Enum.join("\n")
-    gv = @graphviz_header <> graph <> @graphviz_footer
-    IO.puts gv
+  @spec print() :: :ok
+  def print do
+    all_node()
+    |> Enum.sort()
+    |> Enum.map(&to_edge/1)
+    |> Enum.join("\n")
+    |> make_dot()
+    |> IO.puts()
   end
 
   # private functions
@@ -39,12 +39,17 @@ defmodule Hyparview.Debug do
     [Node.self()|Node.list()]
   end
 
+  @spec to_edge(Node.t()) :: String.t()
   defp to_edge(origin) do
     origin
     |> Hyparview.PeerManager.get_active_view()
     |> Enum.reduce([], fn(node, acc) -> ["  \"#{origin}\" -> \"#{node}\" [arrowhead = crow];"|acc] end)
     |> Enum.join("\n")
   end
+
+  @spec make_dot(String.t()) :: String.t()
+  defp make_dot(graph),
+    do: @graphviz_header <> graph <> @graphviz_footer
 
   @spec slave_start_n_iml(non_neg_integer(), non_neg_integer(), atom()) :: :ok
   defp slave_start_n_iml(min, max, start_fn) do
@@ -63,10 +68,10 @@ defmodule Hyparview.Debug do
 
   @spec load_paths_on_slave() :: :ok
   defp load_paths_on_slave do
-    :rpc.multicall(:code, :add_pathsa, [:code.get_path()])
-    :rpc.multicall(:code, :add_patha, [:code.lib_dir(:compiler, :ebin)])
-    :rpc.multicall(:code, :add_patha, [:code.lib_dir(:elixir, :ebin)])
-    :rpc.multicall(:code, :add_patha, [:code.lib_dir(:hyparview, :ebin)])
+    _ = :rpc.eval_everywhere(:code, :add_pathsa, [:code.get_path()])
+    _ = :rpc.eval_everywhere(:code, :add_patha, [:code.lib_dir(:compiler, :ebin)])
+    _ = :rpc.eval_everywhere(:code, :add_patha, [:code.lib_dir(:elixir, :ebin)])
+    _ = :rpc.eval_everywhere(:code, :add_patha, [:code.lib_dir(:hyparview, :ebin)])
     :ok
   end
 
