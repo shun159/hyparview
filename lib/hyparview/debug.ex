@@ -3,6 +3,9 @@ defmodule Hyparview.Debug do
 
   # borrowed from sile/evel
 
+  @graphviz_header "digraph {\n  rankdir=LR;\n  node [shape = circle];\n"
+  @graphviz_footer "\n}"
+
   @spec slave_start_n(non_neg_integer()) :: :ok
   def slave_start_n(count),
     do: slave_start_n(1, count)
@@ -20,22 +23,26 @@ defmodule Hyparview.Debug do
     do: slave_start_n_iml(min, max, :start_link)
 
   def to_graph do
-    header = "digraph {\n rankdir=LR;\n node [shape = circle];\n"
-    footer = "\n}"
     graph =
-      Node.list()
+      all_node()
+      |> Enum.sort()
       |> Enum.map(&to_edge/1)
       |> Enum.join("\n")
-    gv = header <> graph <> footer
+    gv = @graphviz_header <> graph <> @graphviz_footer
     IO.puts gv
   end
 
   # private functions
 
+  @spec all_node() :: [Node.t()]
+  defp all_node do
+    [Node.self()|Node.list()]
+  end
+
   defp to_edge(origin) do
     origin
     |> Hyparview.PeerManager.get_active_view()
-    |> Enum.reduce([], fn(node, acc) -> [" \"#{origin}\" -> \"#{node}\" [arrowhead = crow];"|acc] end)
+    |> Enum.reduce([], fn(node, acc) -> ["  \"#{origin}\" -> \"#{node}\" [arrowhead = crow];"|acc] end)
     |> Enum.join("\n")
   end
 

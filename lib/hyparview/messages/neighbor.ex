@@ -51,7 +51,7 @@ defmodule Hyparview.Messages.Neighbor do
       {:noreply, %{state | view: view}}
   """
   @spec handle(t(), View.t()) :: View.t()
-  def handle(%Neighbor{priority: :low, sender: sender}, view) do
+  def handle(%Neighbor{priority: :low, sender: sender}, view) when sender != node() do
     if View.has_free_slot_in_active_view?(view) do
       try_add_node_to_active(sender, view)
     else
@@ -60,8 +60,12 @@ defmodule Hyparview.Messages.Neighbor do
     end
   end
 
-  def handle(%Neighbor{sender: sender}, view) do
+  def handle(%Neighbor{sender: sender}, view) when sender != node() do
     try_add_node_to_active(sender, view)
+  end
+  def handle(%Neighbor{sender: sender}, view) do
+    :ok = NeighborRejected.send!(sender, view)
+    view
   end
 
   # private functions
