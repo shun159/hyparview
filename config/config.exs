@@ -3,8 +3,8 @@
 use Mix.Config
 
 config :hyparview,
-  contact_nodes: [:"1@shun159", :"2@shun159", :"3@shun159", :"4@shun159", :"node1@shun159"],
-  active_view_size: 8,
+  contact_nodes: [:"node3@shun159", :"node10@shun159", :"node20@shun159"],
+  active_view_size: 4,
   handler_module: Hyparview.ExampleHandler
 
 config :logger, :console,

@@ -53,5 +53,5 @@ defmodule Hyparview.Debug do
   end
 
   defp start_slave(n, host, fun),
-    do: {:ok, _} = apply(:slave, fun, [host, to_charlist(n)])
+    do: {:ok, _} = apply(:slave, fun, [host, 'node' ++ to_charlist(n)])
 end

@@ -111,6 +111,10 @@ defmodule Hyparview.PeerManager do
     {:keep_state_and_data, [{:reply, from, data.view.passive}]}
   end
 
+  def handle_event(:info, {:send_after, _node, %Join{}}, JOINED, _data) do
+    # Drop
+    :keep_state_and_data
+  end
   def handle_event(:info, {:send_after, node, msg}, _state, _data) do
     :ok = send_message(node, msg)
     :keep_state_and_data
@@ -154,25 +158,30 @@ defmodule Hyparview.PeerManager do
   end
 
   defp handle_INIT(:info, %Join{sender: sender} = join, data) do
-    :ok = debug("JOIN request received from #{sender}")
+    :ok = debug("JOIN request received from #{sender} on #{Node.self()}")
     view = Join.handle(join, data.view)
     {:keep_state, %{data | view: view}}
   end
 
   defp handle_INIT(:info, %JoinAccepted{sender: sender} = join_accepted, data) do
-    :ok = debug("JOIN accepted by #{sender}")
+    :ok = debug("JOIN accepted by #{sender} on #{Node.self()}")
     view = JoinAccepted.handle(join_accepted, data.view)
     {:next_state, JOINED, %{data | view: view}}
   end
 
   defp handle_INIT(:info, %JoinFailed{sender: sender} = join_failed, data) do
-    :ok = debug("JOIN rejected by #{sender}")
+    :ok = debug("JOIN rejected by #{sender} on #{Node.self()}")
     _tref = JoinFailed.handle(join_failed, data.view)
     :keep_state_and_data
   end
 
+  defp handle_INIT(:info, %Neighbor{sender: sender} = neighbor, _data) do
+    # Ignored
+    :keep_state_and_data
+  end
+
   defp handle_INIT(:info, %NeighborAccepted{sender: sender} = neighbor_accepted, data) do
-    :ok = debug("NEIGHBOR ACCEPTED by #{sender}")
+    :ok = debug("NEIGHBOR ACCEPTED by #{sender} on #{Node.self()}")
     view = NeighborAccepted.handle(neighbor_accepted, data.view)
     {:next_state, JOINED, %{data | view: view}}
   end
@@ -203,61 +212,61 @@ defmodule Hyparview.PeerManager do
   end
 
   defp handle_JOINED(:info, %Join{sender: sender} = join, data) do
-    :ok = debug("JOIN request received from #{sender}")
+    :ok = debug("JOIN request received from #{sender} on #{Node.self()}")
     view = Join.handle(join, data.view)
     {:keep_state, %{data | view: view}}
   end
 
   defp handle_JOINED(:info, %JoinAccepted{sender: sender} = join_accepted, data) do
-    :ok = debug("JOIN accepted by #{sender}")
+    :ok = debug("JOIN accepted by #{sender} on #{Node.self()}")
     view = JoinAccepted.handle(join_accepted, data.view)
     {:keep_state, %{data | view: view}}
   end
 
   defp handle_JOINED(:info, %JoinFailed{sender: sender} = join_failed, data) do
-    :ok = debug("JOIN rejected by #{sender}")
+    :ok = debug("JOIN rejected by #{sender} on #{Node.self()}")
     _tref = JoinFailed.handle(join_failed, data.view)
     :keep_state_and_data
   end
 
   defp handle_JOINED(:info, %ForwardJoin{sender: sender} = forward_join, data) do
-    :ok = debug("FORWARDJOIN received from #{sender}")
+    :ok = debug("FORWARDJOIN received from #{sender} on #{Node.self()}")
     {_result, view} = ForwardJoin.handle(forward_join, data.view)
     {:keep_state, %{data | view: view}}
   end
 
   defp handle_JOINED(:info, %Shuffle{sender: sender} = shuffle, data) do
-    :ok = debug("SHUFFLE request received from #{sender}")
+    :ok = debug("SHUFFLE request received from #{sender} on #{Node.self()}")
     view = Shuffle.handle(shuffle, data.view)
     {:keep_state, %{data | view: view}}
   end
 
   defp handle_JOINED(:info, %ShuffleReply{sender: sender} = shuffle_reply, data) do
-    :ok = debug("SHUFFLEREPLY received from #{sender}")
+    :ok = debug("SHUFFLEREPLY received from #{sender} on #{Node.self()}")
     view = ShuffleReply.handle(shuffle_reply, data.view)
     {:keep_state, %{data | view: view}}
   end
 
   defp handle_JOINED(:info, %Neighbor{sender: sender} = neighbor, data) do
-    :ok = debug("NEIGHBOR received from #{sender}")
+    :ok = debug("NEIGHBOR received from #{sender} on #{Node.self()}")
     view = Neighbor.handle(neighbor, data.view)
     {:keep_state, %{data | view: view}}
   end
 
   defp handle_JOINED(:info, %NeighborAccepted{sender: sender} = neighbor_accepted, data) do
-    :ok = debug("NEIGHBOR ACCEPTED by #{sender}")
+    :ok = debug("NEIGHBOR ACCEPTED by #{sender} on #{Node.self()}")
     view = NeighborAccepted.handle(neighbor_accepted, data.view)
     {:keep_state, %{data | view: view}}
   end
 
   defp handle_JOINED(:info, %NeighborRejected{sender: sender} = neighbor_rejected, data) do
-    :ok = debug("NEIGHBOR REJECTED by #{sender}")
+    :ok = debug("NEIGHBOR REJECTED by #{sender} on #{Node.self()}")
     view = NeighborRejected.handle(neighbor_rejected, data.view)
     {:keep_state, %{data | view: view}}
   end
 
   defp handle_JOINED(:info, %Disconnect{sender: sender} = disconnect, data) do
-    :ok = debug("DISCONNECTED #{sender}")
+    :ok = debug("DISCONNECTED #{sender} on #{Node.self()}")
     view = Disconnect.handle(disconnect, data.view)
     {:keep_state, %{data | view: view}}
   end
