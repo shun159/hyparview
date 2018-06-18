@@ -1,11 +1,8 @@
 # Hyparview
 
-HyParView for Elixir
+Hyparview is a membership protocol implementation for Elixir.
 
-### Status
+What can it do?
+====
 
-Under construction
-
-### Implemented functionalities
-
-- [ ] HyParView event handler behaviour.
+Nothing.
