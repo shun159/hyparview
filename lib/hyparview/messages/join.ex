@@ -56,9 +56,9 @@ defmodule Hyparview.Messages.Join do
   @spec handle(t(), view0 :: View.t()) :: View.t()
   def handle(%Join{sender: sender} = join, view0) when sender != node() do
     if View.has_free_slot_in_active_view?(view0) do
-      sender
-      |> View.try_add_node_to_active(view0)
-      |> maybe_send_forward_join(join)
+      :ok = maybe_send_forward_join(view0, join)
+      {_, view} = View.try_add_node_to_active(sender, view0)
+      view
     else
       :ok = JoinFailed.send!(join, view0)
       :ok = debug("JOIN rejected by has not free slot in active view")
@@ -79,10 +79,9 @@ defmodule Hyparview.Messages.Join do
     view
   end
 
-  defp maybe_send_forward_join({:ok, view}, join) do
+  defp maybe_send_forward_join(view, join) do
     :ok = Hyparview.EventHandler.add_node(join.sender, view)
     :ok = ForwardJoin.broadcast!(join, view)
     :ok = JoinAccepted.send!(join, view)
-    view
   end
 end

@@ -5,6 +5,7 @@ defmodule Hyparview.Messages.Neighbor do
 
   alias __MODULE__
   alias Hyparview.View
+  alias Hyparview.Utils
   alias Hyparview.PeerManager
   alias Hyparview.Messages.NeighborRejected
   alias Hyparview.Messages.NeighborAccepted
@@ -32,8 +33,7 @@ defmodule Hyparview.Messages.Neighbor do
   @spec send!(View.t()) :: :ok
   def send!(view) do
     view.passive
-    |> Enum.shuffle()
-    |> Enum.at(0)
+    |> Utils.choose_node()
     |> PeerManager.send_message(new(view))
   end
 

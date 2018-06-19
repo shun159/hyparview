@@ -21,6 +21,7 @@ defmodule Hyparview.PeerManager do
   alias Hyparview.Messages.NeighborAccepted
   alias Hyparview.Messages.NeighborRejected
   alias Hyparview.Messages.Disconnect
+  alias Hyparview.Messages.Connect
 
   @behaviour GenStatem
 
@@ -167,6 +168,12 @@ defmodule Hyparview.PeerManager do
     {:next_state, JOINED, %{data | view: view}}
   end
 
+  defp handle_INIT(:info, %Connect{sender: sender} = connect, data) do
+    :ok = debug("CONNECT by #{sender} on #{Node.self()}")
+    view = Connect.handle(connect, data.view)
+    {:next_state, JOINED, %{data | view: view}}
+  end
+
   defp handle_INIT(:info, %JoinFailed{sender: sender} = join_failed, data) do
     :ok = debug("JOIN rejected by #{sender} on #{Node.self()}")
     _tref = JoinFailed.handle(join_failed, data.view)
@@ -181,7 +188,6 @@ defmodule Hyparview.PeerManager do
   defp handle_INIT(:info, %NeighborAccepted{sender: sender} = neighbor_accepted, data) do
     :ok = debug("NEIGHBOR ACCEPTED by #{sender} on #{Node.self()}")
     view = NeighborAccepted.handle(neighbor_accepted, data.view)
-    :ok = Hyparview.EventHandler.add_node(sender, view)
     {:next_state, JOINED, %{data | view: view}}
   end
 
@@ -205,9 +211,11 @@ defmodule Hyparview.PeerManager do
   end
 
   defp handle_JOINED(:info, StartNeighbor, data) do
-    _ = if View.has_free_slot_in_active_view?(data.view), do: Neighbor.send!(data.view)
-    neigh_inval_delay = Utils.random_delay(data.neighbor_interval)
-    _tref = send_after(StartNeighbor, neigh_inval_delay)
+    if View.has_free_slot_in_active_view?(data.view) do
+      :ok = Neighbor.send!(data.view)
+      neigh_inval_delay = Utils.random_delay(data.neighbor_interval)
+      _tref = send_after(StartNeighbor, neigh_inval_delay)
+    end
     :keep_state_and_data
   end
 
@@ -221,6 +229,12 @@ defmodule Hyparview.PeerManager do
     :ok = debug("JOIN accepted by #{sender} on #{Node.self()}")
     view = JoinAccepted.handle(join_accepted, data.view)
     {:keep_state, %{data | view: view}}
+  end
+
+  defp handle_JOINED(:info, %Connect{sender: sender} = connect, data) do
+    :ok = debug("CONNECT by #{sender} on #{Node.self()}")
+    view = Connect.handle(connect, data.view)
+    {:next_state, JOINED, %{data | view: view}}
   end
 
   defp handle_JOINED(:info, %JoinFailed{sender: sender} = join_failed, data) do
@@ -270,6 +284,8 @@ defmodule Hyparview.PeerManager do
     :ok = debug("DISCONNECTED #{sender} on #{Node.self()}")
     view = Disconnect.handle(disconnect, data.view)
     :ok = Hyparview.EventHandler.del_node(sender, data.view)
+    neigh_inval_delay = Utils.random_delay(data.neighbor_interval)
+    _tref = send_after(StartNeighbor, neigh_inval_delay)
     {:keep_state, %{data | view: view}}
   end
 

@@ -3,10 +3,14 @@ defmodule Hyparview.Messages.ForwardJoin do
   FORWARDJOIN request abstraction module
   """
 
+  import Logger
+
   alias __MODULE__
   alias Hyparview.Config
   alias Hyparview.View
+  alias Hyparview.Utils
   alias Hyparview.Messages.Join
+  alias Hyparview.Messages.Connect
   alias Hyparview.PeerManager
 
   defstruct sender: Node.self(),
@@ -56,21 +60,26 @@ defmodule Hyparview.Messages.ForwardJoin do
   """
   @spec handle(t(), View.t()) :: {:ok, View.t()} | {{:error, reason :: term()}, View.t()}
   def handle(%ForwardJoin{ttl: 0, joined_node: joined_node}, view) do
+    :ok = debug(fn() -> "FORWARDJOIN: out of ttl, try add #{joined_node} to active" end)
     :ok = Hyparview.EventHandler.add_node(joined_node, view)
+    :ok = Connect.send!(joined_node)
     View.try_add_node_to_active(joined_node, view)
   end
 
   # In case of active_view is empty, simply add the joined node to its active view.
   def handle(%ForwardJoin{joined_node: joined_node}, %View{active: %MapSet{map: active}} = view)
-      when map_size(active) == 0 do
+  when map_size(active) == 0 do
+    :ok = debug(fn() -> "FORWARDJOIN empty active, try add #{joined_node} to active" end)
     :ok = Hyparview.EventHandler.add_node(joined_node, view)
+    :ok = Connect.send!(joined_node)
     View.try_add_node_to_active(joined_node, view)
   end
 
   # In case of other than those above,
   #  1. If TTL equal to PRWL, insert the joined node into its passive view
   #  2. The TTL is decremented and forward the message.
-  def handle(%ForwardJoin{ttl: prwl} = forward_join, %View{prwl: prwl} = view) do
+  def handle(%ForwardJoin{ttl: prwl, joined_node: joined_node} = forward_join, %View{prwl: prwl} = view) do
+    :ok = debug(fn() -> "FORWARDJOIN ttl == prwl, try add #{joined_node} to passive" end)
     :ok =
       view
       |> View.trim_and_add_to_passive(forward_join.joined_node)
@@ -80,6 +89,7 @@ defmodule Hyparview.Messages.ForwardJoin do
   end
 
   def handle(%ForwardJoin{} = forward_join, view) do
+    :ok = Logger.debug(fn() -> "Forward FORWARDJOIN" end)
     :ok = forward(view, forward_join)
     {:ok, view}
   end
@@ -92,8 +102,7 @@ defmodule Hyparview.Messages.ForwardJoin do
       view.active
       |> MapSet.delete(forward_join.joined_node)
       |> MapSet.delete(forward_join.sender)
-      |> Enum.take_random(1)
-      |> Enum.at(0)
+      |> Utils.choose_node()
       |> PeerManager.send_message(%{forward_join | ttl: forward_join.ttl - 1})
     else
       :ok

@@ -13,7 +13,7 @@ defmodule Hyparview.Config do
   @spec contact_nodes() :: MapSet.t(Node.t())
   def contact_nodes do
     :contact_nodes
-    |> get_env([])
+    |> get_env(Node.list())
     |> Enum.filter(&is_not_self?/1)
     |> MapSet.new()
   end
