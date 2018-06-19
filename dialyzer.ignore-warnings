@@ -1,0 +1,4 @@
+The call 'Elixir.MapSet':put(#{'__struct__':='Elixir.MapSet', 'map':=_, _=>_},any()) does not have an opaque term of type 'Elixir.MapSet':t(_) as 1st argument
+will never return since it differs in the 1st argument from the success typing arguments: ([])
+lib/hyparview/messages/join.ex:51: The pattern {'ok', Vview@1} can never match the type {{'error','failed_to_connect'},#{'__struct__':='Elixir.Hyparview.View', 'active':='Elixir.Hyparview.View':view_t(), 'active_size':=non_neg_integer(), 'arwl':=non_neg_integer(), 'passive':='Elixir.Hyparview.View':view_t(), 'passive_size':=non_neg_integer(), 'prwl':=non_neg_integer()}}
+The call 'Elixir.MapSet':delete(Vnodes@1::#{'__struct__':='Elixir.MapSet', _=>_},atom()) does not have an opaque term of type 'Elixir.MapSet':t(_) as 1st argument
