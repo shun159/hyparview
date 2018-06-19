@@ -5,10 +5,12 @@ defmodule Hyparview.DefaultHandler do
 
   import Logger, only: [info: 1, warn: 1]
 
+  alias Hyparview.View
+
   @spec joining() :: map()
   def joining, do: Map.new()
 
-  @spec joined(View.t(), state :: term()) {:ok, term()}
+  @spec joined(View.t(), state :: term()) :: {:ok, term()}
   def joined(_view, state) do
     :ok = info("JOINED")
     {:ok, state}

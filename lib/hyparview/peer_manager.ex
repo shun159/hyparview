@@ -32,7 +32,7 @@ defmodule Hyparview.PeerManager do
               join_timeout: Config.join_timeout(),
               shuffle_interval: Config.shuffle_interval(),
               neighbor_interval: Config.neighbor_interval(),
-              callback_module: Config.callback_module()
+              callback_module: Config.callback_module(),
               callback_state: nil
 
     def new do
@@ -73,21 +73,17 @@ defmodule Hyparview.PeerManager do
     _timer_ref = Process.send_after(__MODULE__, msg, after_msec)
   end
 
-  @call_timeout 1000
-
-  @spec get_active_view() :: MapSet.t(Node.t())
+  @spec get_active_view() :: MapSet.t(Node.t()) | {:error, :timeout}
   def get_active_view, do: get_active_view(Node.self())
 
-  @spec get_active_view(Node.t()) :: MapSet.t(Node.t())
-  def get_active_view(node),
-    do: GenStatem.call({__MODULE__, node}, {:get, :active}, @call_timeout)
+  @spec get_active_view(Node.t()) :: MapSet.t(Node.t()) | {:error, :timeout}
+  def get_active_view(node), do: safe_call(node, {:get, :active})
 
-  @spec get_passive_view() :: MapSet.t(Node.t())
+  @spec get_passive_view() :: MapSet.t(Node.t()) | {:error, :timeout}
   def get_passive_view, do: get_passive_view(Node.self())
 
-  @spec get_passive_view(Node.t()) :: MapSet.t(Node.t())
-  def get_passive_view(node),
-    do: GenStatem.call({__MODULE__, node}, {:get, :passive}, @call_timeout)
+  @spec get_passive_view(Node.t()) :: MapSet.t(Node.t()) | {:error, :timeout}
+  def get_passive_view(node), do: safe_call(node, {:get, :passive})
 
   # gen_statem callback functions
 
@@ -275,5 +271,15 @@ defmodule Hyparview.PeerManager do
   defp handle_JOINED(type, msg, _data) do
     :ok = debug(fn -> "Unhandled message received (type: #{type} msg: #{inspect(msg)})" end)
     :keep_state_and_data
+  end
+
+  @call_timeout 1000
+
+  @spec safe_call(Node.t(), term()) :: MapSet.t(Node.t()) | {:error, :timeout}
+  defp safe_call(node, msg) do
+    GenStatem.call({__MODULE__, node}, msg, @call_timeout)
+  catch
+    :exit, _ ->
+      {:error, :timeout}
   end
 end
