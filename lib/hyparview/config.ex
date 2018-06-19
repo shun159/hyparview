@@ -45,8 +45,8 @@ defmodule Hyparview.Config do
   @spec shuffle_interval() :: non_neg_integer()
   def shuffle_interval, do: get_env(:shuffle_interval, @default_shuffle_interval)
 
-  @spec handler_module() :: atom()
-  def handler_module, do: get_env(:handler_module, Hyparview.ExampleHandler)
+  @spec callback_module() :: atom()
+  def callback_module, do: get_env(:callback_module, Hyparview.DefaultHandler)
 
   # private functions
 

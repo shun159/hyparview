@@ -32,7 +32,8 @@ defmodule Hyparview.PeerManager do
               join_timeout: Config.join_timeout(),
               shuffle_interval: Config.shuffle_interval(),
               neighbor_interval: Config.neighbor_interval(),
-              handler_module: Config.handler_module()
+              callback_module: Config.callback_module()
+              callback_state: nil
 
     def new do
       _ = Rand.seed(:exsplus)
