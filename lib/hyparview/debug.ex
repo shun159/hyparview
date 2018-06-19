@@ -24,12 +24,19 @@ defmodule Hyparview.Debug do
 
   @spec print() :: :ok
   def print do
-    all_node()
-    |> Enum.sort()
-    |> Enum.map(&to_edge/1)
-    |> Enum.join("\n")
-    |> make_dot()
-    |> IO.puts()
+    {:ok, pid} = File.open("hyparview.dot", [:write])
+
+    graph_data =
+      all_node()
+      |> Enum.sort()
+      |> Enum.map(&to_edge/1)
+      |> Enum.join("\n")
+      |> make_dot()
+
+    _ = IO.puts(graph_data)
+    _ = IO.write(pid, graph_data)
+    _ = File.close(pid)
+    :ok
   end
 
   # private functions

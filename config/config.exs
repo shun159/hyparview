@@ -4,7 +4,7 @@ use Mix.Config
 
 config :hyparview,
   contact_nodes: [:"node3@shun159", :"node10@shun159", :"node20@shun159"],
-  active_view_size: 4,
+  active_view_size: 8,
   callback_module: Hyparview.DefaultHandler
 
 config :logger, :console,
