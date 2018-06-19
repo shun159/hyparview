@@ -7,8 +7,8 @@ defmodule Hyparview.DefaultHandler do
 
   alias Hyparview.View
 
-  @spec joining() :: map()
-  def joining, do: Map.new()
+  @spec joining() :: {:ok, term()}
+  def joining, do: {:ok, Map.new()}
 
   @spec joined(View.t(), state :: term()) :: {:ok, term()}
   def joined(_view, state) do
@@ -16,14 +16,14 @@ defmodule Hyparview.DefaultHandler do
     {:ok, state}
   end
 
-  @spec connected(Node.t(), state :: term()) :: {:ok, term()}
-  def connected(node, state) do
+  @spec add_node(Node.t(), View.t(), state :: term()) :: {:ok, term()}
+  def add_node(node, _view, state) do
     :ok = info("CONNECTED node: #{node}")
     {:ok, state}
   end
 
-  @spec disconnected(Node.t(), state :: term()) :: {:ok, term()}
-  def disconnected(node, state) do
+  @spec del_node(Node.t(), View.t(), state :: term()) :: {:ok, term()}
+  def del_node(node, _view, state) do
     :ok = warn("DISCONNECTED node: #{node}")
     {:ok, state}
   end

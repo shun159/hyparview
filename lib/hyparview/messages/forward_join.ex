@@ -56,12 +56,14 @@ defmodule Hyparview.Messages.ForwardJoin do
   """
   @spec handle(t(), View.t()) :: {:ok, View.t()} | {{:error, reason :: term()}, View.t()}
   def handle(%ForwardJoin{ttl: 0, joined_node: joined_node}, view) do
+    :ok = Hyparview.EventHandler.add_node(joined_node, view)
     View.try_add_node_to_active(joined_node, view)
   end
 
   # In case of active_view is empty, simply add the joined node to its active view.
   def handle(%ForwardJoin{joined_node: joined_node}, %View{active: %MapSet{map: active}} = view)
       when map_size(active) == 0 do
+    :ok = Hyparview.EventHandler.add_node(joined_node, view)
     View.try_add_node_to_active(joined_node, view)
   end
 

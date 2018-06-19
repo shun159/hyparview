@@ -140,6 +140,7 @@ defmodule Hyparview.PeerManager do
     _tref = Join.send_after(data.view, join_after_delay)
     neigh_inval_delay = Utils.random_delay(data.neighbor_interval)
     _tref = send_after(StartNeighbor, neigh_inval_delay)
+    :ok = Hyparview.EventHandler.joining()
     {:keep_state_and_data, [{:state_timeout, data.join_timeout, :join_timeout}]}
   end
 
@@ -180,6 +181,7 @@ defmodule Hyparview.PeerManager do
   defp handle_INIT(:info, %NeighborAccepted{sender: sender} = neighbor_accepted, data) do
     :ok = debug("NEIGHBOR ACCEPTED by #{sender} on #{Node.self()}")
     view = NeighborAccepted.handle(neighbor_accepted, data.view)
+    :ok = Hyparview.EventHandler.add_node(sender, view)
     {:next_state, JOINED, %{data | view: view}}
   end
 
@@ -191,6 +193,7 @@ defmodule Hyparview.PeerManager do
   defp handle_JOINED(:enter, _old, data) do
     shuffle_inval_delay = Utils.random_delay(data.shuffle_interval)
     _tref = send_after(StartShuffle, shuffle_inval_delay)
+    :ok = Hyparview.EventHandler.joined(data.view)
     :keep_state_and_data
   end
 
@@ -253,6 +256,7 @@ defmodule Hyparview.PeerManager do
   defp handle_JOINED(:info, %NeighborAccepted{sender: sender} = neighbor_accepted, data) do
     :ok = debug("NEIGHBOR ACCEPTED by #{sender} on #{Node.self()}")
     view = NeighborAccepted.handle(neighbor_accepted, data.view)
+    :ok = Hyparview.EventHandler.add_node(sender, view)
     {:keep_state, %{data | view: view}}
   end
 
@@ -265,6 +269,7 @@ defmodule Hyparview.PeerManager do
   defp handle_JOINED(:info, %Disconnect{sender: sender} = disconnect, data) do
     :ok = debug("DISCONNECTED #{sender} on #{Node.self()}")
     view = Disconnect.handle(disconnect, data.view)
+    :ok = Hyparview.EventHandler.del_node(sender, data.view)
     {:keep_state, %{data | view: view}}
   end
 

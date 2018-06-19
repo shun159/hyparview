@@ -9,6 +9,6 @@ config :hyparview,
 
 config :logger, :console,
   colors: [enabled: true],
-  level: :error,
+  level: :info,
   format: "$time [$level] [$metadata] $levelpad$message\n",
   metadata: [:module]

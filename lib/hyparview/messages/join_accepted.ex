@@ -43,6 +43,7 @@ defmodule Hyparview.Messages.JoinAccepted do
   def handle(%JoinAccepted{sender: sender, view: remote_view}, view0) do
     case View.try_add_node_to_active(sender, view0) do
       {:ok, view} ->
+        :ok = Hyparview.EventHandler.add_node(sender, view)
         View.trim_and_add_to_passive(view, remote_view.passive)
 
       {{:error, :failed_to_connect}, view} ->

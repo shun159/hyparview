@@ -80,6 +80,7 @@ defmodule Hyparview.Messages.Join do
   end
 
   defp maybe_send_forward_join({:ok, view}, join) do
+    :ok = Hyparview.EventHandler.add_node(join.sender, view)
     :ok = ForwardJoin.broadcast!(join, view)
     :ok = JoinAccepted.send!(join, view)
     view

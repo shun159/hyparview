@@ -74,6 +74,7 @@ defmodule Hyparview.Messages.Neighbor do
   defp try_add_node_to_active(sender, view0) do
     case View.try_add_node_to_active(sender, view0) do
       {:ok, view} ->
+        :ok = Hyparview.EventHandler.add_node(sender, view)
         :ok = NeighborAccepted.send!(sender, view)
         view
 

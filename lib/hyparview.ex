@@ -7,6 +7,7 @@ defmodule Hyparview do
     import Supervisor.Spec
 
     children = [
+      worker(Hyparview.EventHandler, []),
       worker(Hyparview.NodeMonitor, []),
       worker(Hyparview.PeerManager, [])
     ]
