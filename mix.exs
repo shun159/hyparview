@@ -5,13 +5,12 @@ defmodule Hyparview.MixProject do
     [
       app: :hyparview,
       name: "hyparview",
-      version: "0.1.0",
+      version: "0.1.1",
       elixir: "~> 1.6",
       description: description(),
       package: package(),
       source_url: "https://github.com/shun159/hyparview",
       deps: deps(),
-      aliases: aliases(),
       dialyzer: dialyzer()
     ]
   end
