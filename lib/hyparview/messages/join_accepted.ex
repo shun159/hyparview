@@ -44,7 +44,7 @@ defmodule Hyparview.Messages.JoinAccepted do
     case View.try_add_node_to_active(sender, view0) do
       {:ok, view} ->
         :ok = Hyparview.EventHandler.add_node(sender, view)
-        View.trim_and_add_to_passive(view, remote_view.passive)
+        View.trim_and_add_to_passive(view, remote_view.active)
 
       {{:error, :failed_to_connect}, view} ->
         view
