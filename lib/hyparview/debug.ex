@@ -43,14 +43,16 @@ defmodule Hyparview.Debug do
 
   @spec all_node() :: [Node.t()]
   defp all_node do
-    [Node.self()|Node.list()]
+    [Node.self() | Node.list()]
   end
 
   @spec to_edge(Node.t()) :: String.t()
   defp to_edge(origin) do
     origin
     |> Hyparview.PeerManager.get_active_view()
-    |> Enum.reduce([], fn(node, acc) -> ["  \"#{origin}\" -> \"#{node}\" [arrowhead = crow];"|acc] end)
+    |> Enum.reduce([], fn node, acc ->
+      ["  \"#{origin}\" -> \"#{node}\" [arrowhead = crow];" | acc]
+    end)
     |> Enum.join("\n")
   end
 

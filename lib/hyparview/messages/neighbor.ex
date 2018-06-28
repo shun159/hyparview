@@ -63,6 +63,7 @@ defmodule Hyparview.Messages.Neighbor do
   def handle(%Neighbor{sender: sender}, view) when sender != node() do
     try_add_node_to_active(sender, view)
   end
+
   def handle(%Neighbor{sender: sender}, view) do
     :ok = NeighborRejected.send!(sender, view)
     view

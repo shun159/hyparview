@@ -16,6 +16,7 @@ defmodule Hyparview.Utils do
     if MapSet.size(nodes) > 0 do
       node_idx =
         nodes
+        |> MapSet.delete(Node.self())
         |> MapSet.size()
         |> Rand.uniform()
         |> Kernel.-(1)
