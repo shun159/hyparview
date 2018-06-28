@@ -5,7 +5,7 @@ defmodule Hyparview.MixProject do
     [
       app: :hyparview,
       name: "hyparview",
-      version: "0.1.1",
+      version: "0.1.2",
       elixir: "~> 1.6",
       description: description(),
       package: package(),
@@ -28,10 +28,6 @@ defmodule Hyparview.MixProject do
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.14", only: :dev},
     ]
-  end
-
-  defp aliases do
-    [compile: ["compile", "credo --strict"]]
   end
 
   defp dialyzer do
