@@ -33,12 +33,12 @@ defmodule Hyparview.EventHandler do
   end
 
   def handle_cast({:add_node, node, view}, %State{cb_mod: cb_mod} = state) do
-    _ = cb_mod.add_node(node, view)
+    if MapSet.member?(view.active, node), do: cb_mod.add_node(node, view)
     {:noreply, state}
   end
 
   def handle_cast({:del_node, node, view}, %State{cb_mod: cb_mod} = state) do
-    _ = cb_mod.del_node(node, view)
+    unless MapSet.member?(view.active, node), do: cb_mod.del_node(node, view)
     {:noreply, state}
   end
 end

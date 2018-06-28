@@ -140,20 +140,11 @@ defmodule Hyparview.PeerManager do
   defp handle_INIT(:enter, _old_state, data) do
     join_after_delay = data.join_interval
     _tref = Join.send_after(data.view, join_after_delay)
-    neigh_inval_delay = Utils.random_delay(data.neighbor_interval)
-    _tref = send_after(StartNeighbor, neigh_inval_delay)
     {:keep_state_and_data, [{:state_timeout, data.join_timeout, :join_timeout}]}
   end
 
   defp handle_INIT(:state_timeout, :join_timeout, _data) do
     :repeat_state_and_data
-  end
-
-  defp handle_INIT(:info, StartNeighbor, data) do
-    :ok = Neighbor.send!(data.view)
-    neigh_inval_delay = Utils.random_delay(data.neighbor_interval)
-    _tref = send_after(StartNeighbor, neigh_inval_delay)
-    :keep_state_and_data
   end
 
   defp handle_INIT(:info, %Join{sender: sender} = join, data) do
@@ -180,17 +171,6 @@ defmodule Hyparview.PeerManager do
     :keep_state_and_data
   end
 
-  defp handle_INIT(:info, %Neighbor{}, _data) do
-    # Ignored
-    :keep_state_and_data
-  end
-
-  defp handle_INIT(:info, %NeighborAccepted{sender: sender} = neighbor_accepted, data) do
-    :ok = debug("NEIGHBOR ACCEPTED by #{sender} on #{Node.self()}")
-    view = NeighborAccepted.handle(neighbor_accepted, data.view)
-    {:next_state, JOINED, %{data | view: view}}
-  end
-
   defp handle_INIT(:info, %ForwardJoin{}, _data) do
     {:keep_state_and_data, [:postpone]}
   end
@@ -200,13 +180,17 @@ defmodule Hyparview.PeerManager do
   end
 
   defp handle_INIT(type, msg, _data) do
-    :ok = debug(fn -> "Unhandled message received (type: #{type} msg: #{inspect(msg)}) on INIT" end)
+    :ok =
+      debug(fn -> "Unhandled message received (type: #{type} msg: #{inspect(msg)}) on INIT" end)
+
     :keep_state_and_data
   end
 
   defp handle_JOINED(:enter, _old, data) do
+    neigh_inval_delay = Utils.random_delay(data.neighbor_interval)
+    _ = send_after(StartNeighbor, neigh_inval_delay)
     shuffle_inval_delay = Utils.random_delay(data.shuffle_interval)
-    _tref = send_after(StartShuffle, shuffle_inval_delay)
+    _ = send_after(StartShuffle, shuffle_inval_delay)
     :keep_state_and_data
   end
 
