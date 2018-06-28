@@ -113,6 +113,7 @@ defmodule Hyparview.PeerManager do
     # Drop
     :keep_state_and_data
   end
+
   def handle_event(:info, {:send_after, node, msg}, _state, _data) do
     :ok = send_message(node, msg)
     :keep_state_and_data
@@ -141,7 +142,6 @@ defmodule Hyparview.PeerManager do
     _tref = Join.send_after(data.view, join_after_delay)
     neigh_inval_delay = Utils.random_delay(data.neighbor_interval)
     _tref = send_after(StartNeighbor, neigh_inval_delay)
-    :ok = Hyparview.EventHandler.joining()
     {:keep_state_and_data, [{:state_timeout, data.join_timeout, :join_timeout}]}
   end
 
@@ -191,15 +191,22 @@ defmodule Hyparview.PeerManager do
     {:next_state, JOINED, %{data | view: view}}
   end
 
+  defp handle_INIT(:info, %ForwardJoin{}, _data) do
+    {:keep_state_and_data, [:postpone]}
+  end
+
+  defp handle_INIT(:info, %Disconnect{}, _data) do
+    {:keep_state_and_data, [:postpone]}
+  end
+
   defp handle_INIT(type, msg, _data) do
-    :ok = debug(fn -> "Unhandled message received (type: #{type} msg: #{inspect(msg)})" end)
+    :ok = debug(fn -> "Unhandled message received (type: #{type} msg: #{inspect(msg)}) on INIT" end)
     :keep_state_and_data
   end
 
   defp handle_JOINED(:enter, _old, data) do
     shuffle_inval_delay = Utils.random_delay(data.shuffle_interval)
     _tref = send_after(StartShuffle, shuffle_inval_delay)
-    :ok = Hyparview.EventHandler.joined(data.view)
     :keep_state_and_data
   end
 
@@ -216,6 +223,7 @@ defmodule Hyparview.PeerManager do
       neigh_inval_delay = Utils.random_delay(data.neighbor_interval)
       _tref = send_after(StartNeighbor, neigh_inval_delay)
     end
+
     :keep_state_and_data
   end
 
