@@ -241,9 +241,12 @@ defmodule Hyparview.PeerManager do
   end
 
   defp handle_JOINED(:info, StartNeighbor, data) do
-    :ok = Neighbor.send!(data.view)
+    if View.has_free_slot_in_active_view?(data.view),
+      do: :ok = Neighbor.send!(data.view)
+
     neigh_inval_delay = Utils.random_delay(data.neighbor_interval)
     _ = send_after(StartNeighbor, neigh_inval_delay)
+
     :ok = debug("Schedule NEIGHBOR after #{neigh_inval_delay} msec")
     :keep_state_and_data
   end
