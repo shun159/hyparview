@@ -3,7 +3,7 @@ defmodule Hyparview.EventHandler do
   Hyparview Event handler
   """
 
-  use GenServer
+  use GenServer, restart: :parmanent
 
   alias Hyparview.Config
   alias Hyparview.View
@@ -15,13 +15,13 @@ defmodule Hyparview.EventHandler do
   end
 
   @spec add_node(Node.t(), View.t()) :: :ok
-  def add_node(node, view) do
-    :ok = GenServer.cast(__MODULE__, {:add_node, node, view})
+  def add_node(remote_node, view) do
+    :ok = GenServer.cast(__MODULE__, {:add_node, remote_node, view})
   end
 
   @spec del_node(Node.t(), View.t()) :: :ok
-  def del_node(node, view) do
-    :ok = GenServer.cast(__MODULE__, {:del_node, node, view})
+  def del_node(remote_node, view) do
+    :ok = GenServer.cast(__MODULE__, {:del_node, remote_node, view})
   end
 
   def start_link do
@@ -32,13 +32,13 @@ defmodule Hyparview.EventHandler do
     {:ok, %State{}}
   end
 
-  def handle_cast({:add_node, node, view}, %State{cb_mod: cb_mod} = state) do
-    if MapSet.member?(view.active, node), do: cb_mod.add_node(node, view)
+  def handle_cast({:add_node, remote_node, view}, %State{cb_mod: cb_mod} = state) do
+    if MapSet.member?(view.active, remote_node), do: cb_mod.add_node(remote_node, view)
     {:noreply, state}
   end
 
-  def handle_cast({:del_node, node, view}, %State{cb_mod: cb_mod} = state) do
-    unless MapSet.member?(view.active, node), do: cb_mod.del_node(node, view)
+  def handle_cast({:del_node, remote_node, view}, %State{cb_mod: cb_mod} = state) do
+    unless MapSet.member?(view.active, remote_node), do: cb_mod.del_node(remote_node, view)
     {:noreply, state}
   end
 end

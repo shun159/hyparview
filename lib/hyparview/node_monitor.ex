@@ -3,7 +3,7 @@ defmodule Hyparview.NodeMonitor do
   Node monitor
   """
 
-  use GenServer
+  use GenServer, restart: :permanent
 
   require Record
   require Logger

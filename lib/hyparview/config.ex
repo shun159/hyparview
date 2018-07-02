@@ -14,8 +14,8 @@ defmodule Hyparview.Config do
   def contact_nodes do
     :contact_nodes
     |> get_env(Node.list())
-    |> Enum.filter(&is_not_self?/1)
     |> MapSet.new()
+    |> MapSet.delete(Node.self())
   end
 
   @spec active_random_walk_length() :: non_neg_integer()
@@ -25,7 +25,7 @@ defmodule Hyparview.Config do
   def passive_random_walk_length, do: get_env(:passive_random_walk_length, 5)
 
   @spec join_timeout() :: non_neg_integer()
-  def join_timeout, do: get_env(:join_timeout, 300)
+  def join_timeout, do: get_env(:join_timeout, 1000)
 
   @spec except_nodes() :: [Node.t()]
   def except_nodes, do: get_env(:except_nodes, [])
@@ -51,6 +51,4 @@ defmodule Hyparview.Config do
   # private functions
 
   defp get_env(key, default), do: Application.get_env(:hyparview, key, default)
-
-  defp is_not_self?(n), do: Node.self() != n
 end

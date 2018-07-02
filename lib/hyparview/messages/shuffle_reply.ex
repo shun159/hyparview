@@ -33,7 +33,7 @@ defmodule Hyparview.Messages.ShuffleReply do
   """
   @spec send!(ShuffleReply.t(), Node.t()) :: :ok
   def send!(%ShuffleReply{} = shuffle_reply, shuffle_sender),
-    do: :ok = PeerManager.send_message(shuffle_sender, shuffle_reply)
+    do: _ = PeerManager.send_message(shuffle_sender, shuffle_reply)
 
   @spec handle(t(), View.t()) :: View.t()
   def handle(%ShuffleReply{nodes: nodes}, view), do: View.trim_and_add_to_passive(view, nodes)

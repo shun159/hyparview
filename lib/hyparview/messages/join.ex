@@ -58,6 +58,7 @@ defmodule Hyparview.Messages.Join do
     if View.has_free_slot_in_active_view?(view0) do
       :ok = maybe_send_forward_join(view0, join)
       {_, view} = View.try_add_node_to_active(sender, view0)
+      :ok = Hyparview.EventHandler.add_node(sender, view)
       view
     else
       :ok = JoinFailed.send!(join, view0)
@@ -80,7 +81,6 @@ defmodule Hyparview.Messages.Join do
   end
 
   defp maybe_send_forward_join(view, join) do
-    :ok = Hyparview.EventHandler.add_node(join.sender, view)
     :ok = ForwardJoin.broadcast!(join, view)
     :ok = JoinAccepted.send!(join, view)
   end

@@ -27,7 +27,7 @@ defmodule Hyparview.View do
 
   @spec has_free_slot_in_active_view?(t()) :: boolean()
   def has_free_slot_in_active_view?(%View{active: %MapSet{map: active}} = view),
-    do: view.active_size > map_size(active)
+    do: view.active_size >= map_size(active)
 
   @spec move_passive_to_active(View.t(), Node.t()) :: View.t()
   def move_passive_to_active(view, node) do
@@ -107,7 +107,7 @@ defmodule Hyparview.View do
   defp select_drop_nodes_from_active(view) do
     view.active
     |> Enum.shuffle()
-    |> Enum.split(view.active_size - 1)
+    |> Enum.split(view.active_size)
     |> Kernel.elem(1)
     |> MapSet.new()
   end

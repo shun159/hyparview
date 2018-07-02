@@ -93,8 +93,7 @@ defmodule Hyparview.Messages.ForwardJoin do
   end
 
   def handle(%ForwardJoin{} = forward_join, view) do
-    :ok = Logger.debug(fn -> "Forward FORWARDJOIN" end)
-    :ok = forward(view, forward_join)
+    _ = forward(view, forward_join)
     {:ok, view}
   end
 

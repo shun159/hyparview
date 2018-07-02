@@ -4,8 +4,10 @@ defmodule Hyparview.Messages.NeighborRejected do
   """
 
   alias __MODULE__
+  alias Hyparview.Messages.Neighbor
   alias Hyparview.View
   alias Hyparview.PeerManager
+  alias Hyparview.Utils
 
   defstruct sender: Node.self(),
             view: %View{}
@@ -28,6 +30,17 @@ defmodule Hyparview.Messages.NeighborRejected do
      {:noreply, %{state | view: view}}
   """
   @spec handle(t(), View.t()) :: View.t()
-  def handle(%NeighborRejected{view: view}, view0),
-    do: View.trim_and_add_to_passive(view0, view.passive)
+  def handle(%NeighborRejected{view: remote_view, sender: sender}, view0) do
+    view = View.trim_and_add_to_passive(view0, remote_view.passive)
+
+    after_msec = Utils.random_delay(60_000)
+
+    _tref =
+      view.passive
+      |> MapSet.delete(sender)
+      |> Utils.choose_node()
+      |> PeerManager.send_after(Neighbor.new(view), after_msec)
+
+    view
+  end
 end

@@ -86,9 +86,8 @@ defmodule Hyparview.Debug do
 
   @spec start_applications() :: :ok
   defp start_applications do
-    :rpc.eval_everywhere(:application, :ensure_all_started, [:elixir])
-    :rpc.eval_everywhere(Application, :put_env, [:logger, :level, :info])
-    :rpc.eval_everywhere(Application, :ensure_all_started, [:hyparview])
+    _ = :rpc.eval_everywhere(:application, :ensure_all_started, [:elixir])
+    _ = :rpc.eval_everywhere(:application, :ensure_all_started, [:hyparview])
     :ok
   end
 
