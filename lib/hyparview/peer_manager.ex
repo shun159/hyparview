@@ -150,14 +150,14 @@ defmodule Hyparview.PeerManager do
     :ok = Join.send!(data.view)
 
     timeouts = [
-      {:state_timeout, 1000, StartJoin},
+      {:state_timeout, 1000, RestartJoin},
       {:state_timeout, 50_000, StartNeighbor}
     ]
 
     {:keep_state, data, timeouts}
   end
 
-  defp handle_INIT(:state_timeout, StartJoin, _data) do
+  defp handle_INIT(:state_timeout, RestartJoin, _data) do
     :repeat_state_and_data
   end
 
@@ -241,13 +241,12 @@ defmodule Hyparview.PeerManager do
   end
 
   defp handle_JOINED(:info, StartNeighbor, data) do
-    if View.has_free_slot_in_active_view?(data.view),
-      do: :ok = Neighbor.send!(data.view)
-
-    neigh_inval_delay = Utils.random_delay(data.neighbor_interval)
-    _ = send_after(StartNeighbor, neigh_inval_delay)
-
-    :ok = debug("Schedule NEIGHBOR after #{neigh_inval_delay} msec")
+    if View.has_free_slot_in_active_view?(data.view) do
+      :ok = Neighbor.send!(data.view)
+      neigh_inval_delay = Utils.random_delay(data.neighbor_interval)
+      _ = send_after(StartNeighbor, neigh_inval_delay)
+      :ok = debug("Schedule NEIGHBOR after #{neigh_inval_delay} msec")
+    end
     :keep_state_and_data
   end
 

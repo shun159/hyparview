@@ -13,7 +13,7 @@ defmodule Hyparview.Messages.Connect do
 
   @spec new() :: t()
   def new do
-    %Connect{}
+    %Connect{sender: Node.self()}
   end
 
   @spec send!(Node.t()) :: :ok
