@@ -37,6 +37,15 @@ defmodule Hyparview.Messages.Neighbor do
     |> PeerManager.send_message(new(view))
   end
 
+  @spec send_after(View.t(), non_neg_integer()) :: reference()
+  def send_after(view, base_time) do
+    after_msec = Utils.random_delay(base_time)
+
+    view.passive
+    |> Utils.choose_node()
+    |> PeerManager.send_after(new(view), after_msec)
+  end
+
   @doc """
   If node received a high priority NEIGHBOR request will always accept the request,
   even if it has to drop a random member from its active view.
@@ -63,6 +72,7 @@ defmodule Hyparview.Messages.Neighbor do
   def handle(%Neighbor{sender: sender}, view) when sender != node() do
     try_add_node_to_active(sender, view)
   end
+
   def handle(%Neighbor{sender: sender}, view) do
     :ok = NeighborRejected.send!(sender, view)
     view

@@ -23,12 +23,14 @@ defmodule Hyparview.Messages.Disconnect do
 
   @spec notify(Node.t(), View.t()) :: View.t()
   def notify(node, view) do
-    :ok = PeerManager.send_message(node, new())
+    _ = PeerManager.send_message(node, new())
     View.move_active_to_passive(node, view)
   end
 
   @spec handle(t(), View.t()) :: View.t()
   def handle(%Disconnect{sender: sender}, view) do
-    View.move_active_to_passive(sender, view)
+    view = View.move_active_to_passive(sender, view)
+    _ = Hyparview.EventHandler.del_node(sender, view)
+    view
   end
 end

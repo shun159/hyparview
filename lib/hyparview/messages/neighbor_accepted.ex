@@ -30,9 +30,13 @@ defmodule Hyparview.Messages.NeighborAccepted do
      {:noreply, %{state | view: view}}
   """
   @spec handle(t(), View.t()) :: View.t()
-  def handle(%NeighborAccepted{sender: sender}, view0) do
-    :ok = Hyparview.EventHandler.add_node(sender, view0)
-    view0
-    |> View.move_passive_to_active(sender)
+  def handle(%NeighborAccepted{sender: sender, view: remote_view}, view0) do
+    view =
+      view0
+      |> View.move_passive_to_active(sender)
+      |> View.trim_and_add_to_passive(remote_view.passive)
+
+    :ok = Hyparview.EventHandler.add_node(sender, view)
+    view
   end
 end

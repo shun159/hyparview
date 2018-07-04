@@ -3,7 +3,7 @@ defmodule Hyparview.NodeMonitor do
   Node monitor
   """
 
-  use GenServer
+  use GenServer, restart: :permanent
 
   require Record
   require Logger
@@ -135,9 +135,7 @@ defmodule Hyparview.NodeMonitor do
 
   @spec do_add_node(Node.t()) :: true
   defp do_add_node(node) do
-    mon_ref = Process.monitor({PeerManager, node})
-    entry = monitor(node: node, mon_ref: mon_ref)
-    true = ETS.insert(:monitor, entry)
+    if has_monitor(node), do: ensure_monitor(node), else: true
   end
 
   @spec do_del_node(Node.t()) :: true
@@ -169,5 +167,12 @@ defmodule Hyparview.NodeMonitor do
       [node_name] when is_atom(node_name) -> node_name
       _ -> nil
     end
+  end
+
+  @spec ensure_monitor(Node.t()) :: true
+  defp ensure_monitor(node) do
+    mon_ref = Process.monitor({PeerManager, node})
+    entry = monitor(node: node, mon_ref: mon_ref)
+    ETS.insert(:monitor, entry)
   end
 end

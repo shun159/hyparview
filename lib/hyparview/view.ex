@@ -14,11 +14,9 @@ defmodule Hyparview.View do
             arwl: Config.active_random_walk_length(),
             prwl: Config.passive_random_walk_length()
 
-  @opaque view_t :: MapSet.t(Node.t())
-
   @type t :: %View{
-          active: view_t(),
-          passive: view_t(),
+          active: MapSet.t(),
+          passive: MapSet.t(),
           active_size: non_neg_integer(),
           passive_size: non_neg_integer(),
           arwl: non_neg_integer(),
@@ -27,7 +25,7 @@ defmodule Hyparview.View do
 
   @spec has_free_slot_in_active_view?(t()) :: boolean()
   def has_free_slot_in_active_view?(%View{active: %MapSet{map: active}} = view),
-    do: view.active_size > map_size(active)
+    do: view.active_size >= map_size(active)
 
   @spec move_passive_to_active(View.t(), Node.t()) :: View.t()
   def move_passive_to_active(view, node) do
@@ -41,7 +39,7 @@ defmodule Hyparview.View do
   def move_active_to_passive(node, view) do
     active = MapSet.delete(view.active, node)
     passive = MapSet.put(view.passive, node)
-    _ = Node.disconnect(node)
+    :ok = NodeMonitor.schedule_delete_node(node, 10_000)
     %{view | active: active, passive: passive}
   end
 
@@ -107,7 +105,7 @@ defmodule Hyparview.View do
   defp select_drop_nodes_from_active(view) do
     view.active
     |> Enum.shuffle()
-    |> Enum.split(view.active_size - 1)
+    |> Enum.split(view.active_size)
     |> Kernel.elem(1)
     |> MapSet.new()
   end

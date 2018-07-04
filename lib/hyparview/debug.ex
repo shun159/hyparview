@@ -43,14 +43,16 @@ defmodule Hyparview.Debug do
 
   @spec all_node() :: [Node.t()]
   defp all_node do
-    [Node.self()|Node.list()]
+    [Node.self() | Node.list()]
   end
 
   @spec to_edge(Node.t()) :: String.t()
   defp to_edge(origin) do
     origin
     |> Hyparview.PeerManager.get_active_view()
-    |> Enum.reduce([], fn(node, acc) -> ["  \"#{origin}\" -> \"#{node}\" [arrowhead = crow];"|acc] end)
+    |> Enum.reduce([], fn node, acc ->
+      ["  \"#{origin}\" -> \"#{node}\" [arrowhead = crow];" | acc]
+    end)
     |> Enum.join("\n")
   end
 
@@ -84,9 +86,8 @@ defmodule Hyparview.Debug do
 
   @spec start_applications() :: :ok
   defp start_applications do
-    :rpc.eval_everywhere(:application, :ensure_all_started, [:elixir])
-    :rpc.eval_everywhere(Application, :put_env, [:logger, :level, :info])
-    :rpc.eval_everywhere(Application, :ensure_all_started, [:hyparview])
+    _ = :rpc.eval_everywhere(:application, :ensure_all_started, [:elixir])
+    _ = :rpc.eval_everywhere(:application, :ensure_all_started, [:hyparview])
     :ok
   end
 

@@ -27,7 +27,7 @@ defmodule Hyparview.Messages.JoinAccepted do
       :ok = JoinAccepted.send!(join, view.state)
   """
   @spec send!(Join.t(), View.t()) :: :ok
-  def send!(%Join{sender: sender}, view), do: :ok = PeerManager.send_message(sender, new(view))
+  def send!(%Join{sender: sender}, view), do: PeerManager.send_message(sender, new(view))
 
   @doc """
   Handler function for JoinAccepted received node.
@@ -42,9 +42,10 @@ defmodule Hyparview.Messages.JoinAccepted do
   @spec handle(t(), View.t()) :: View.t()
   def handle(%JoinAccepted{sender: sender, view: remote_view}, view0) do
     case View.try_add_node_to_active(sender, view0) do
-      {:ok, view} ->
-        :ok = Hyparview.EventHandler.add_node(sender, view)
-        View.trim_and_add_to_passive(view, remote_view.active)
+      {:ok, view1} ->
+        view = View.trim_and_add_to_passive(view1, remote_view.passive)
+        _ = Hyparview.EventHandler.add_node(sender, view)
+        view
 
       {{:error, :failed_to_connect}, view} ->
         view

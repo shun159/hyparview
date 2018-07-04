@@ -13,17 +13,17 @@ defmodule Hyparview.Messages.Connect do
 
   @spec new() :: t()
   def new do
-    %Connect{}
+    %Connect{sender: Node.self()}
   end
 
   @spec send!(Node.t()) :: :ok
   def send!(joined_node) do
-    :ok = PeerManager.send_message(joined_node, new())
+    _ = PeerManager.send_message(joined_node, new())
   end
 
   @spec handle(t(), View.t()) :: View.t()
   def handle(%Connect{sender: sender}, view) do
-    :ok = Hyparview.EventHandler.add_node(sender, view)
+    _ = Hyparview.EventHandler.add_node(sender, view)
     {_, view} = View.try_add_node_to_active(sender, view)
     view
   end
