@@ -140,7 +140,7 @@ defmodule Hyparview.PeerManager do
 
   # handler for unknown state
   def handle_event(type, msg, _state, _data) do
-    debug(fn -> "Unhandled message received (type: #{type} msg: #{inspect(msg)})" end)
+    :ok = debug(fn -> "Unhandled message received (type: #{type} msg: #{inspect(msg)})" end)
     :keep_state_and_data
   end
 
@@ -312,7 +312,7 @@ defmodule Hyparview.PeerManager do
   end
 
   defp handle_JOINED(type, msg, _data) do
-    debug(fn -> "Unhandled message received (type: #{type} msg: #{inspect(msg)}) on JOINED" end)
+    :ok = debug(fn -> "Unhandled message received (type: #{type} msg: #{inspect(msg)}) on JOINED" end)
     :keep_state_and_data
   end
 

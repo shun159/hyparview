@@ -14,11 +14,9 @@ defmodule Hyparview.View do
             arwl: Config.active_random_walk_length(),
             prwl: Config.passive_random_walk_length()
 
-  @opaque view_t :: MapSet.t(Node.t())
-
   @type t :: %View{
-          active: view_t(),
-          passive: view_t(),
+          active: MapSet.t(),
+          passive: MapSet.t(),
           active_size: non_neg_integer(),
           passive_size: non_neg_integer(),
           arwl: non_neg_integer(),

@@ -74,12 +74,7 @@ defmodule Hyparview.Messages.Join do
 
   # private functions
 
-  defp maybe_send_forward_join({{:error, :failed_to_connect}, view}, join) do
-    :ok = debug("JOIN rejected by failed to connect")
-    :ok = JoinFailed.send!(join, view)
-    view
-  end
-
+  @spec maybe_send_forward_join(View.t(), t()) :: :ok
   defp maybe_send_forward_join(view, join) do
     :ok = ForwardJoin.broadcast!(join, view)
     :ok = JoinAccepted.send!(join, view)
