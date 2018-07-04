@@ -41,7 +41,7 @@ defmodule Hyparview.View do
   def move_active_to_passive(node, view) do
     active = MapSet.delete(view.active, node)
     passive = MapSet.put(view.passive, node)
-    _ = Node.disconnect(node)
+    :ok = NodeMonitor.schedule_delete_node(node, 10_000)
     %{view | active: active, passive: passive}
   end
 

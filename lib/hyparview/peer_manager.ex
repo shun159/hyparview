@@ -247,6 +247,7 @@ defmodule Hyparview.PeerManager do
       _ = send_after(StartNeighbor, neigh_inval_delay)
       :ok = debug("Schedule NEIGHBOR after #{neigh_inval_delay} msec")
     end
+
     :keep_state_and_data
   end
 

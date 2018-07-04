@@ -5,10 +5,11 @@ defmodule Hyparview.Utils do
 
   @spec random_delay(base_time :: non_neg_integer()) :: non_neg_integer()
   def random_delay(base_time) do
-    Rand.uniform_real()
-    |> Kernel.round()
+    base_time
     |> Kernel.+(1)
-    |> Kernel.*(base_time)
+    |> Rand.uniform()
+    |> Kernel.-(1)
+    |> Kernel.+(div(base_time, 2))
   end
 
   @spec choose_node(MapSet.t(Node.t())) :: Node.t() | nil
@@ -16,16 +17,20 @@ defmodule Hyparview.Utils do
     nodes = MapSet.delete(nodes0, Node.self())
 
     if MapSet.size(nodes) > 0 do
-      node_idx =
-        nodes
-        |> MapSet.delete(Node.self())
-        |> MapSet.size()
-        |> Rand.uniform()
-        |> Kernel.-(1)
-
+      node_idx = randomized_index_of(nodes)
       Enum.at(nodes, node_idx)
     else
       nil
     end
+  end
+
+  # private functions
+
+  @spec randomized_index_of(MapSet.t(Node.t())) :: non_neg_integer()
+  defp randomized_index_of(nodes) do
+    nodes
+    |> MapSet.size()
+    |> Rand.uniform()
+    |> Kernel.-(1)
   end
 end
