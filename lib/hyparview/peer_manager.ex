@@ -33,7 +33,8 @@ defmodule Hyparview.PeerManager do
               join_timeout: Config.join_timeout(),
               shuffle_interval: Config.shuffle_interval(),
               neighbor_interval: Config.neighbor_interval(),
-              node: Node.self()
+              node: Node.self(),
+              timer_refs: [nil, nil]
 
     def new do
       _ = Rand.seed(:exsplus)
@@ -215,6 +216,10 @@ defmodule Hyparview.PeerManager do
     {:keep_state_and_data, [:postpone]}
   end
 
+  defp handle_INIT(:info, %Connect{}, _data) do
+    {:keep_state_and_data, [:postpone]}
+  end
+
   defp handle_INIT(type, msg, _data) do
     :ok =
       debug(fn -> "Unhandled message received (type: #{type} msg: #{inspect(msg)}) on INIT" end)
@@ -223,38 +228,19 @@ defmodule Hyparview.PeerManager do
   end
 
   defp handle_JOINED(:enter, _old, data) do
-    shuffle_inval_delay = Utils.random_delay(data.shuffle_interval)
-    _ = send_after(StartShuffle, shuffle_inval_delay)
-    neigh_inval_delay = Utils.random_delay(data.neighbor_interval)
-    _ = send_after(StartNeighbor, neigh_inval_delay)
-    :ok = debug("Schedule SHUFFLE after #{shuffle_inval_delay} msec")
-    :ok = debug("Schedule NEIGHBOR after #{neigh_inval_delay} msec")
-    :keep_state_and_data
-  end
-
-  defp handle_JOINED(:info, StartShuffle, data) do
-    :ok = Shuffle.send!(data.view)
-    shuffle_inval_delay = Utils.random_delay(data.shuffle_interval)
-    _ = send_after(StartShuffle, shuffle_inval_delay)
-    :ok = debug("Schedule SHUFFLE after #{shuffle_inval_delay} msec")
-    :keep_state_and_data
-  end
-
-  defp handle_JOINED(:info, StartNeighbor, data) do
-    if View.has_free_slot_in_active_view?(data.view) do
-      :ok = Neighbor.send!(data.view)
-      neigh_inval_delay = Utils.random_delay(data.neighbor_interval)
-      _ = send_after(StartNeighbor, neigh_inval_delay)
-      :ok = debug("Schedule NEIGHBOR after #{neigh_inval_delay} msec")
-    end
-
-    :keep_state_and_data
+    :ok = cancel_timers(data.timer_refs)
+    shuffle_tref = Shuffle.send_after(data.view)
+    neighbor_tref =
+      if View.has_free_slot_in_active_view?(data.view) do
+        Neighbor.send_after(data.view, data.neighbor_interval)
+      end
+    {:keep_state, %{data | timer_refs: [shuffle_tref, neighbor_tref]}}
   end
 
   defp handle_JOINED(:info, %Connect{sender: sender} = connect, data) do
     :ok = debug("CONNECT by #{sender} on #{Node.self()}")
     view = Connect.handle(connect, data.view)
-    {:keep_state, %{data | view: view}}
+    {:repeat_state, %{data | view: view}}
   end
 
   defp handle_JOINED(:info, %Join{sender: sender} = join, data) do
@@ -266,7 +252,7 @@ defmodule Hyparview.PeerManager do
   defp handle_JOINED(:info, %JoinAccepted{sender: sender} = join_accepted, data) do
     :ok = debug("JOIN accepted by #{sender} on #{Node.self()}")
     view = JoinAccepted.handle(join_accepted, data.view)
-    {:keep_state, %{data | view: view}}
+    {:repeat_state, %{data | view: view}}
   end
 
   defp handle_JOINED(:info, %ForwardJoin{sender: sender} = forward_join, data) do
@@ -278,31 +264,31 @@ defmodule Hyparview.PeerManager do
   defp handle_JOINED(:info, %Shuffle{sender: sender} = shuffle, data) do
     :ok = debug("SHUFFLE request received from #{sender} on #{Node.self()}")
     view = Shuffle.handle(shuffle, data.view)
-    {:keep_state, %{data | view: view}}
+    {:repeat_state, %{data | view: view}}
   end
 
   defp handle_JOINED(:info, %ShuffleReply{sender: sender} = shuffle_reply, data) do
     :ok = debug("SHUFFLEREPLY received from #{sender} on #{Node.self()}")
     view = ShuffleReply.handle(shuffle_reply, data.view)
-    {:keep_state, %{data | view: view}}
+    {:repeat_state, %{data | view: view}}
   end
 
   defp handle_JOINED(:info, %Neighbor{sender: sender} = neighbor, data) do
     :ok = debug("NEIGHBOR received from #{sender} on #{Node.self()}")
     view = Neighbor.handle(neighbor, data.view)
-    {:keep_state, %{data | view: view}}
+    {:repeat_state, %{data | view: view}}
   end
 
   defp handle_JOINED(:info, %NeighborAccepted{sender: sender} = neighbor_accepted, data) do
     :ok = debug("NEIGHBOR ACCEPTED by #{sender} on #{Node.self()}")
     view = NeighborAccepted.handle(neighbor_accepted, data.view)
-    {:keep_state, %{data | view: view}}
+    {:repeat_state, %{data | view: view}}
   end
 
   defp handle_JOINED(:info, %NeighborRejected{sender: sender} = neighbor_rejected, data) do
     :ok = debug("NEIGHBOR REJECTED by #{sender} on #{Node.self()}")
     view = NeighborRejected.handle(neighbor_rejected, data.view)
-    {:keep_state, %{data | view: view}}
+    {:repeat_state, %{data | view: view}}
   end
 
   defp handle_JOINED(:info, %Disconnect{sender: sender} = disconnect, data) do
@@ -325,4 +311,18 @@ defmodule Hyparview.PeerManager do
     :exit, _ ->
       {:error, :timeout}
   end
+
+  @spec cancel_timers([reference() | any()]) :: :ok
+  defp cancel_timers(timer_refs) do
+    :ok =
+      timer_refs
+      |> Enum.each(&cancel_timer/1)
+  end
+
+  @spec cancel_timer(reference() | any()) :: :ok
+  defp cancel_timer(timer_ref) when is_reference(timer_ref) do
+    _ = Process.cancel_timer(timer_ref)
+    :ok
+  end
+  defp cancel_timer(_), do: :ok
 end

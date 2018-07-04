@@ -60,6 +60,16 @@ defmodule Hyparview.Messages.Shuffle do
     |> PeerManager.send_message(new(view: view))
   end
 
+  @spec send_after(View.t()) :: reference()
+  def send_after(%View{active: active} = view) do
+    base_time = Config.shuffle_interval()
+    after_msec = Utils.random_delay(base_time)
+
+    active
+    |> Utils.choose_node()
+    |> PeerManager.send_after(new(view: view), after_msec)
+  end
+
   @doc """
       if Shuffle.should_forward?(shuffle, view) do
         :ok = Shuffle.forward!(shuffle, view)

@@ -11,11 +11,11 @@ defmodule Hyparview.DefaultHandler do
 
   @spec add_node(Node.t(), View.t()) :: :ok
   def add_node(node, _view) do
-    :ok = info("CONNECTED node: #{node}")
+    :ok = info("CONNECTED node: #{node} to #{Node.self()}")
   end
 
   @spec del_node(Node.t(), View.t()) :: :ok
   def del_node(node, _view) do
-    :ok = warn("DISCONNECTED node: #{node}")
+    :ok = warn("DISCONNECTED node: #{node} from #{Node.self()}")
   end
 end

@@ -135,18 +135,17 @@ defmodule Hyparview.NodeMonitor do
 
   @spec do_add_node(Node.t()) :: true
   defp do_add_node(node) do
-    if has_monitor(node), do: ensure_monitor(node), else: true
+    ensure_monitor(node)
   end
 
   @spec do_del_node(Node.t()) :: true
   defp do_del_node(node) do
     case lookup(node) do
-      nil ->
-        true
-
-      mon_ref ->
-        _ = Process.demonitor(mon_ref)
+      mon_ref when is_reference(mon_ref) ->
+        _ = demonitor_by(node)
         true = ETS.delete(:monitor, node)
+      _ ->
+        true
     end
   end
 
@@ -171,8 +170,17 @@ defmodule Hyparview.NodeMonitor do
 
   @spec ensure_monitor(Node.t()) :: true
   defp ensure_monitor(node) do
+    if has_monitor(node), do: demonitor_by(node)
     mon_ref = Process.monitor({PeerManager, node})
     entry = monitor(node: node, mon_ref: mon_ref)
     ETS.insert(:monitor, entry)
+  end
+
+  @spec demonitor_by(nil | Node.t()) :: true
+  defp demonitor_by(nil), do: true
+  defp demonitor_by(node) when not is_nil(node) do
+    node
+    |> lookup()
+    |> Process.demonitor()
   end
 end

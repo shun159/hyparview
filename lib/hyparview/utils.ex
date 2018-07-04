@@ -3,6 +3,11 @@ defmodule Hyparview.Utils do
 
   alias :rand, as: Rand
 
+  @spec rand_seed() :: Rand.state()
+  def rand_seed do
+    Rand.seed(:exsplus, make_seed())
+  end
+
   @spec random_delay(base_time :: non_neg_integer()) :: non_neg_integer()
   def random_delay(base_time) do
     base_time
@@ -32,5 +37,14 @@ defmodule Hyparview.Utils do
     |> MapSet.size()
     |> Rand.uniform()
     |> Kernel.-(1)
+  end
+
+  @spec make_seed() :: {integer(), integer(), integer()}
+  defp make_seed do
+    {
+      :erlang.phash2([Node.self()]),
+      :erlang.monotonic_time(),
+      :erlang.unique_integer()
+    }
   end
 end
