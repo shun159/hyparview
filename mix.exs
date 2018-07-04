@@ -5,7 +5,7 @@ defmodule Hyparview.MixProject do
     [
       app: :hyparview,
       name: "hyparview",
-      version: "0.1.2",
+      version: "0.1.4",
       elixir: "~> 1.6",
       description: description(),
       package: package(),
@@ -17,7 +17,7 @@ defmodule Hyparview.MixProject do
 
   def application do
     [
-      extra_applications: [:logger],
+      extra_applications: [:logger, :sasl],
       mod: {Hyparview, []}
     ]
   end
@@ -26,7 +26,7 @@ defmodule Hyparview.MixProject do
     [
       {:credo, "~> 0.9.1", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
-      {:ex_doc, "~> 0.14", only: :dev},
+      {:ex_doc, "~> 0.14", only: :dev}
     ]
   end
 
