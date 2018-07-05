@@ -177,7 +177,7 @@ defmodule Hyparview.PeerManager do
   defp handle_INIT(:info, %Neighbor{sender: sender} = neighbor, data) do
     :ok = debug("NEIGHBOR received from #{sender} on #{Node.self()}")
     view = Neighbor.handle(neighbor, data.view)
-    {:next_state, %{data | view: view}}
+    {:next_state, JOINED, %{data | view: view}}
   end
 
   defp handle_INIT(:info, %NeighborAccepted{sender: sender} = neighbor_accepted, data) do
