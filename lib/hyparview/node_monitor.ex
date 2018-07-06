@@ -103,8 +103,10 @@ defmodule Hyparview.NodeMonitor do
   end
 
   def handle_info({:DOWN, _mon_ref, _, {_, r_node}, _reason}, state) do
-    _ = send(PeerManager, Disconnect.new(r_node))
-    true = do_del_node(r_node)
+    if has_monitor(r_node) do
+      _ = send(PeerManager, Disconnect.new(r_node))
+      true = do_del_node(r_node)
+    end
     {:noreply, state}
   end
 
@@ -144,7 +146,7 @@ defmodule Hyparview.NodeMonitor do
       mon_ref when is_reference(mon_ref) ->
         _ = demonitor_by(node)
         true = ETS.delete(:monitor, node)
-      _ ->
+      nil ->
         true
     end
   end
