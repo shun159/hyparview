@@ -11,6 +11,7 @@ defmodule Hyparview.MixProject do
       package: package(),
       source_url: "https://github.com/shun159/hyparview",
       deps: deps(),
+      aliases: aliases(),
       dialyzer: dialyzer()
     ]
   end
@@ -51,5 +52,9 @@ defmodule Hyparview.MixProject do
       maintainers: ["Eishun Kondoh (shun159)"],
       links: %{"GitHub" => "https://github.com/shun159/hyparview"}
     ]
+  end
+
+  def aliases do
+    [quality: ["compile", "dialyzer", "credo --strict"]]
   end
 end

@@ -230,10 +230,12 @@ defmodule Hyparview.PeerManager do
   defp handle_JOINED(:enter, _old, data) do
     :ok = cancel_timers(data.timer_refs)
     shuffle_tref = Shuffle.send_after(data.view)
+
     neighbor_tref =
       if View.has_free_slot_in_active_view?(data.view) do
         Neighbor.send_after(data.view, data.neighbor_interval)
       end
+
     {:keep_state, %{data | timer_refs: [shuffle_tref, neighbor_tref]}}
   end
 
@@ -298,7 +300,9 @@ defmodule Hyparview.PeerManager do
   end
 
   defp handle_JOINED(type, msg, _data) do
-    :ok = debug(fn -> "Unhandled message received (type: #{type} msg: #{inspect(msg)}) on JOINED" end)
+    :ok =
+      debug(fn -> "Unhandled message received (type: #{type} msg: #{inspect(msg)}) on JOINED" end)
+
     :keep_state_and_data
   end
 
@@ -324,5 +328,6 @@ defmodule Hyparview.PeerManager do
     _ = Process.cancel_timer(timer_ref)
     :ok
   end
+
   defp cancel_timer(_), do: :ok
 end

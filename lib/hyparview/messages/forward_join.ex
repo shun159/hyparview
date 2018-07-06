@@ -102,11 +102,13 @@ defmodule Hyparview.Messages.ForwardJoin do
   @spec forward(View.t(), t()) :: :ok
   defp forward(view, forward_join) do
     if not MapSet.member?(view.active, forward_join.joined_node) do
+      forward_message = %{forward_join | ttl: forward_join.ttl - 1, sender: Node.self()}
+
       view.active
       |> MapSet.delete(forward_join.joined_node)
       |> MapSet.delete(forward_join.sender)
       |> Utils.choose_node()
-      |> PeerManager.send_message(%{forward_join | ttl: forward_join.ttl - 1, sender: Node.self()})
+      |> PeerManager.send_message(forward_message)
     else
       :ok
     end
