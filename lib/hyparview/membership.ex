@@ -125,6 +125,12 @@ defmodule Hyparview.Membership do
   end
 
   @impl GenServer
+  def handle_cast({:join, node}, state) do
+    :ok = send_join_message(node)
+    {:noreply, %{state | passive_view: MapSet.put(state.passive_view, node)}}
+  end
+
+  @impl GenServer
   def handle_cast(:send_join, %State{joined?: true} = state) do
     # Already JOINED, ignore this request
     {:noreply, state}
@@ -134,6 +140,9 @@ defmodule Hyparview.Membership do
   def handle_cast(:send_join, %State{} = state) do
     case do_join(state) do
       :ok ->
+        {:noreply, state}
+
+      {:error, :nonode} ->
         {:noreply, state}
 
       {:error, node} ->
@@ -148,7 +157,6 @@ defmodule Hyparview.Membership do
         {:noreply, state}
 
       {:error, :nonode} ->
-        :ok = warn("Couldn't send neighbor request, because of passive view empty")
         {:noreply, state}
 
       {:error, node} ->
@@ -489,11 +497,11 @@ defmodule Hyparview.Membership do
   @spec do_join(%State{}) :: :ok | {:error, reason :: term()}
   defp do_join(state) do
     case Hyparview.Utils.select_node(state.passive_view) do
-      {:ok, node} ->
-        do_join(node, state)
-
       {:error, :nonode} = error ->
         error
+
+      {:ok, node} ->
+        do_join(node, state)
     end
   end
 

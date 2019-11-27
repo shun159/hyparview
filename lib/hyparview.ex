@@ -1,6 +1,10 @@
 defmodule Hyparview do
   @moduledoc false
 
+  @spec join(Node.t()) :: :ok
+  def join(node),
+    do: GenServer.cast(Hyparview.Membership, {:join, node})
+
   def get_active_view,
     do: GenServer.call(Hyparview.Membership, :get_active_view)
 
